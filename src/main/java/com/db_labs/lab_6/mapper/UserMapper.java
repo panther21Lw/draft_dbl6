@@ -6,6 +6,7 @@ import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Component;
 
+import java.util.Collections;
 import java.util.stream.Collectors;
 
 @Component
@@ -28,6 +29,27 @@ public class UserMapper {
     }
 
     public User toUser(UserDto dto){
-        return modelMapper.map(dto, User.class);
+        User user = new User();
+
+        user.setRoleId(dto.getRoleId());
+        user.setFirstName(dto.getFirstName());
+        user.setLastName(dto.getLastName());
+        user.setAge(dto.getAge());
+        user.setEmail(dto.getEmail());
+        user.setPassword(dto.getPassword());
+        user.setPhoneNumber(dto.getPhoneNumber());
+
+        if (dto.getRequests() == null || dto.getRequests().isEmpty()) {
+            user.setRequests(Collections.emptyList());
+        } else {
+            user.setRequests(
+                    dto.getRequests().stream()
+                        .map(requestDto -> requestMapper.toRequest(requestDto, user))
+                        .collect(Collectors.toList())
+            );
+        }
+
+        return user;
     }
+
 }

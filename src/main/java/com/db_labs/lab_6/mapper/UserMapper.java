@@ -1,55 +1,53 @@
 package com.db_labs.lab_6.mapper;
 
 import com.db_labs.lab_6.dto.UserDto;
+import com.db_labs.lab_6.entity.Request;
 import com.db_labs.lab_6.entity.User;
-import lombok.RequiredArgsConstructor;
-import org.modelmapper.ModelMapper;
-import org.springframework.stereotype.Component;
+import com.db_labs.lab_6.repository.RequestRepository;
 
 import java.util.Collections;
+import java.util.List;
 import java.util.stream.Collectors;
 
-@Component
-@RequiredArgsConstructor
+
 public class UserMapper {
 
-    private final ModelMapper modelMapper;
-    private final RequestMapper requestMapper;
-
-    public UserDto toUserDto(User user){
-        UserDto dto = modelMapper.map(user, UserDto.class);
-        if (user.getRequests() != null){
-            dto.setRequests(
-                    user.getRequests().stream()
-                    .map(requestMapper::toRequestDto)
-                    .collect(Collectors.toList())
-            );
-        }
-        return dto;
-    }
-
-    public User toUser(UserDto dto){
+    public static User toEntity(UserDto userDto, RequestRepository requestRepository) {
         User user = new User();
 
-        user.setRoleId(dto.getRoleId());
-        user.setFirstName(dto.getFirstName());
-        user.setLastName(dto.getLastName());
-        user.setAge(dto.getAge());
-        user.setEmail(dto.getEmail());
-        user.setPassword(dto.getPassword());
-        user.setPhoneNumber(dto.getPhoneNumber());
+        user.setRoleId(userDto.roleId());
+        user.setFirstName(userDto.firstName());
+        user.setLastName(userDto.lastName());
+        user.setAge(userDto.age());
+        user.setEmail(userDto.email());
+        user.setPassword(userDto.password());
+        user.setPhoneNumber(userDto.phoneNumber());
 
-        if (dto.getRequests() == null || dto.getRequests().isEmpty()) {
-            user.setRequests(Collections.emptyList());
-        } else {
-            user.setRequests(
-                    dto.getRequests().stream()
-                        .map(requestDto -> requestMapper.toRequest(requestDto, user))
-                        .collect(Collectors.toList())
-            );
+        if (userDto.requestsIds() != null && !userDto.requestsIds().isEmpty()) {
+            List<Request> requests = requestRepository.findAllById(userDto.requestsIds());
+            requests.forEach(request -> request.setUser(user));
+            user.setRequests(requests);
         }
 
         return user;
     }
 
+    public static UserDto toDto(User user) {
+        List<Long> requestIds = user.getRequests() != null
+                ? user.getRequests().stream()
+                .map(Request::getId)
+                .collect(Collectors.toList())
+                : null;
+
+        return new UserDto(
+            user.getRoleId(),
+            user.getFirstName(),
+            user.getLastName(),
+            user.getAge(),
+            user.getEmail(),
+            user.getPassword(),
+            user.getPhoneNumber(),
+            requestIds
+        );
+    }
 }

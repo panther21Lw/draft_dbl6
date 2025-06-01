@@ -6,6 +6,7 @@ import com.db_labs.lab_6.entity.User;
 import com.db_labs.lab_6.exception.UserNotFoundException;
 import com.db_labs.lab_6.mapper.RequestMapper;
 import com.db_labs.lab_6.mapper.UserMapper;
+import com.db_labs.lab_6.repository.RequestRepository;
 import com.db_labs.lab_6.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -18,13 +19,14 @@ import java.util.stream.Collectors;
 public class UserServiceImpl implements UserService {
 
     private final UserRepository userRepository;
+    private final RequestRepository requestRepository;
     private final UserMapper userMapper;
     private final RequestMapper requestMapper;
 
     @Override
     public List<UserDto> findAll() {
         return userRepository.findAll().stream()
-                .map(userMapper::toUserDto)
+                .map(UserMapper::toDto)
                 .collect(Collectors.toList());
     }
 
@@ -32,14 +34,14 @@ public class UserServiceImpl implements UserService {
     public UserDto findById(Long id) {
         User user = userRepository.findById(id)
                 .orElseThrow(() -> new UserNotFoundException(id));
-        return userMapper.toUserDto(user);
+        return UserMapper.toDto(user);
     }
 
     @Override
     public UserDto create(UserDto dto) {
-        User user = userMapper.toUser(dto);
+        User user = UserMapper.toEntity(dto, requestRepository);
         User savedUser = userRepository.save(user);
-        return userMapper.toUserDto(savedUser);
+        return UserMapper.toDto(savedUser);
     }
 
     @Override
@@ -47,25 +49,24 @@ public class UserServiceImpl implements UserService {
         User existingUser = userRepository.findById(id)
                 .orElseThrow(() -> new UserNotFoundException(id));
 
-        existingUser.setFirstName(dto.getFirstName());
-        existingUser.setLastName(dto.getLastName());
-        existingUser.setEmail(dto.getEmail());
-        existingUser.setAge(dto.getAge());
-        existingUser.setPassword(dto.getPassword());
-        existingUser.setPhoneNumber(dto.getPhoneNumber());
-        existingUser.setRoleId(dto.getRoleId());
+        existingUser.setFirstName(dto.firstName());
+        existingUser.setLastName(dto.lastName());
+        existingUser.setEmail(dto.email());
+        existingUser.setAge(dto.age());
+        existingUser.setPassword(dto.password());
+        existingUser.setPhoneNumber(dto.phoneNumber());
+        existingUser.setRoleId(dto.roleId());
 
         existingUser.getRequests().clear();
 
-        if (dto.getRequests() != null && !dto.getRequests().isEmpty()) {
-            dto.getRequests().forEach(requestDto -> {
-                Request request = requestMapper.toRequest(requestDto, existingUser);
-                existingUser.getRequests().add(request);
-            });
+        if (dto.requestsIds() != null && !dto.requestsIds().isEmpty()) {
+            List<Request> requests = requestRepository.findAllById(dto.requestsIds());
+            requests.forEach(request -> request.setUser(existingUser));
+            existingUser.getRequests().addAll(requests);
         }
 
         User updatedUser = userRepository.save(existingUser);
-        return userMapper.toUserDto(updatedUser);
+        return UserMapper.toDto(updatedUser);
     }
 
     @Override

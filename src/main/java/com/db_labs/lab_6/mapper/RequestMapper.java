@@ -2,26 +2,27 @@ package com.db_labs.lab_6.mapper;
 
 import com.db_labs.lab_6.dto.RequestDto;
 import com.db_labs.lab_6.entity.Request;
-import com.db_labs.lab_6.entity.User;
-import lombok.RequiredArgsConstructor;
-import org.modelmapper.ModelMapper;
-import org.springframework.stereotype.Component;
+import com.db_labs.lab_6.repository.UserRepository;
 
-@Component
-@RequiredArgsConstructor
 public class RequestMapper {
 
-    private final ModelMapper modelMapper;
+    public static Request toEntity(RequestDto dto, UserRepository userRepository) {
+        Request request = new Request();
+        request.setTime(dto.time());
+        request.setUrl(dto.url());
 
-    public RequestDto toRequestDto(Request request){
-        RequestDto dto = modelMapper.map(request, RequestDto.class);
-        dto.setUserId(request.getUser().getId());
-        return dto;
+        if (dto.userId() != null) {
+            request.setUser(userRepository.findById(dto.userId()).orElse(null));
+        }
+
+        return request;
     }
 
-    public Request toRequest(RequestDto dto, User user){
-        Request request = modelMapper.map(dto, Request.class);
-        request.setUser(user);
-        return request;
+    public static RequestDto toDto(Request request) {
+        return new RequestDto(
+            request.getUser() != null ? request.getUser().getId() : null,
+            request.getTime(),
+            request.getUrl()
+        );
     }
 }

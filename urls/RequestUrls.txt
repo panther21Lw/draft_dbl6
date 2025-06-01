@@ -1,0 +1,26 @@
+GET
+localhost:8080/api/v1/requests
+
+GET with ID:
+localhost:8080/api/v1/requests/3
+
+POST
+===================
+{
+  "userId": 3,
+  "time": "2025-06-01T09:30:00",
+  "url": "/api/datta/tmp-task/task-compl"
+}
+
+PUT
+===================
+localhost:8080/api/v1/requests/6
+{
+  "userId": 3,
+  "time": "2025-06-01T09:30:00",
+  "url": "/api/datta/task/changed"
+}
+
+DELETE
+===================
+localhost:8080/api/v1/requests/6

@@ -24,8 +24,10 @@ public class RequestServiceImpl implements RequestService {
 
     @Override
     public List<RequestDto> findAll() {
-        return requestRepository.findAll().stream()
-                .map(requestMapper::toRequestDto)
+
+        List<Request> requests = requestRepository.findAll();
+        return requests.stream()
+                .map(RequestMapper::toDto)
                 .collect(Collectors.toList());
     }
 
@@ -33,16 +35,16 @@ public class RequestServiceImpl implements RequestService {
     public RequestDto findById(Long id) {
         Request request = requestRepository.findById(id)
                 .orElseThrow(() -> new RequestNotFoundException(id));
-        return requestMapper.toRequestDto(request);
+        return RequestMapper.toDto(request);
     }
 
     @Override
     public RequestDto create(RequestDto dto) {
-        User user = userRepository.findById(dto.getUserId())
-                .orElseThrow(() -> new UserNotFoundException(dto.getUserId()));
-        Request request = requestMapper.toRequest(dto, user);
+        User user = userRepository.findById(dto.userId())
+                .orElseThrow(() -> new UserNotFoundException(dto.userId()));
+        Request request = RequestMapper.toEntity(dto, userRepository);
         Request savedRequest = requestRepository.save(request);
-        return requestMapper.toRequestDto(savedRequest);
+        return RequestMapper.toDto(savedRequest);
     }
 
     @Override
@@ -50,15 +52,15 @@ public class RequestServiceImpl implements RequestService {
         Request existingRequest = requestRepository.findById(id)
                 .orElseThrow(() -> new RequestNotFoundException(id));
 
-        User user = userRepository.findById(dto.getUserId())
-                .orElseThrow(() -> new UserNotFoundException(dto.getUserId()));
+        User user = userRepository.findById(dto.userId())
+                .orElseThrow(() -> new UserNotFoundException(dto.userId()));
 
-        existingRequest.setTime(dto.getTime());
-        existingRequest.setUrl(dto.getUrl());
+        existingRequest.setTime(dto.time());
+        existingRequest.setUrl(dto.url());
         existingRequest.setUser(user);
 
         Request updated = requestRepository.save(existingRequest);
-        return requestMapper.toRequestDto(updated);
+        return RequestMapper.toDto(updated);
     }
 
     @Override

@@ -1,0 +1,36 @@
+GET
+localhost:8080/api/v1/users
+
+GET with ID:
+localhost:8080/api/v1/users/2
+
+POST
+===================
+{
+    "roleId": 1,
+    "firstName": "John",
+    "lastName": "Rider",
+    "age": 35,
+    "email": "johnrider@example.com",
+    "password": "johnpass",
+    "phoneNumber": "+3578349985",
+    "requestsIds": []
+}
+
+PUT
+===================
+{
+    "roleId": 1,
+    "firstName": "John",
+    "lastName": "PADLA",
+    "age": 35,
+    "email": "johnrider@example.com",
+    "password": "johnpass",
+    "phoneNumber": "+3578349985",
+    "requestsIds": [2, 3]
+}
+
+DELETE
+===================
+localhost:8080/api/v1/users/4
+
